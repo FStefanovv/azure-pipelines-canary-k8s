@@ -27,3 +27,34 @@ stages:
         Dockerfile: app/Dockerfile
         tags: |
           $(tag)
+
+    - publish: manifests
+      artifact: manifests
+
+    - publish: misc
+      artifact: misc
+
+- stage: DeployCanary
+  displayName: Deploy canary
+  dependsOn: Build
+  condition: succeeded()
+  
+  jobs:
+  - deployment: Deploycanary
+    displayName: Deploy canary
+    environment: 'akscanary'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@1
+            displayName: Create Docker Registry Secret
+            inputs:
+              action: 'createSecret'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: 'az204-learning'
+              kubernetesCluster: 'aks-learning'
+              secretType: 'dockerRegistry'
+              secretName: 'my-acr-secret'
+              dockerRegistryEndpoint: 'fstefanovacrlearning'
