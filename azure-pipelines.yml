@@ -1,19 +1,15 @@
 trigger:
 - main
 
-
-
 variables:
   imageName: azure-pipelines-canary-k8s
-  dockerRegistryServiceConnection: azure-pipelines-canary-acr
+  dockerRegistryServiceConnection: fstefanovacrlearning
   imageRepository: 'azure-pipelines-canary-k8s'
   containerRegistry: fstefanovacrlearning.azurecr.io
   tag: $[ substring( variables['Build.SourceVersion'], 0, 7 ) ]
 
-
 pool:
   name: "Azure Pipelines"
-
 
 stages:
 - stage: Build
