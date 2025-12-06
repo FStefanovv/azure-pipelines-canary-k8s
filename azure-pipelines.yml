@@ -7,6 +7,9 @@ variables:
   imageRepository: 'azure-pipelines-canary-k8s'
   containerRegistry: fstefanovacrlearning.azurecr.io
   tag: $[ substring( variables['Build.SourceVersion'], 0, 7 ) ]
+  kubernetesCluster: 'aks-learning'
+  resourceGroup: 'az204-learning'
+
 
 pool:
   name: "Azure Pipelines"
@@ -53,8 +56,32 @@ stages:
               action: 'createSecret'
               connectionType: 'azureResourceManager'
               azureSubscriptionConnection: 'fstefanov-sub-conn'
-              azureResourceGroup: 'az204-learning'
-              kubernetesCluster: 'aks-learning'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(aksCluster)
               secretType: 'dockerRegistry'
               secretName: 'my-acr-secret'
               dockerRegistryEndpoint: 'fstefanovacrlearning'
+          - task: KubernetesManifest@1
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: 'deploy'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(aksCluster)
+              strategy: 'canary'
+              percentage: '25'
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              containers: '$(containerRegistry)/$(imageRepository):$(tag)'
+              imagePullSecrets: 'my-acr-secret'
+          - task: KubernetesManifest@1
+            displayName: Deploy Forbio to Kubernetes cluster
+            inputs:
+              action: 'deploy'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(aksCluster)
+              manifests: '$(Pipeline.Workspace)/misc/*'
