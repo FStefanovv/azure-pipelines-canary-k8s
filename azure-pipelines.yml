@@ -57,7 +57,7 @@ stages:
               connectionType: 'azureResourceManager'
               azureSubscriptionConnection: 'fstefanov-sub-conn'
               azureResourceGroup: $(resourceGroup)
-              kubernetesCluster: $(aksCluster)
+              kubernetesCluster: $(kubernetesCluster)
               secretType: 'dockerRegistry'
               secretName: 'my-acr-secret'
               dockerRegistryEndpoint: 'fstefanovacrlearning'
@@ -68,7 +68,7 @@ stages:
               connectionType: 'azureResourceManager'
               azureSubscriptionConnection: 'fstefanov-sub-conn'
               azureResourceGroup: $(resourceGroup)
-              kubernetesCluster: $(aksCluster)
+              kubernetesCluster: $(kubernetesCluster)
               strategy: 'canary'
               percentage: '25'
               manifests: |
@@ -83,5 +83,5 @@ stages:
               connectionType: 'azureResourceManager'
               azureSubscriptionConnection: 'fstefanov-sub-conn'
               azureResourceGroup: $(resourceGroup)
-              kubernetesCluster: $(aksCluster)
+              kubernetesCluster: $(kubernetesCluster)
               manifests: '$(Pipeline.Workspace)/misc/*'
