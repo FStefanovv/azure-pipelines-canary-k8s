@@ -85,3 +85,79 @@ stages:
               azureResourceGroup: $(resourceGroup)
               kubernetesCluster: $(kubernetesCluster)
               manifests: '$(Pipeline.Workspace)/misc/*'
+
+
+- stage: PromoteRejectCanary
+  displayName: Promote or Reject canary
+  dependsOn: DeployCanary
+  condition: succeeded()
+  jobs:
+  - deployment: PromoteCanary
+    displayName: Promote Canary
+    environment: 'akspromote'
+    strategy:
+      runOnce:
+        deploy:
+          steps:      
+          - task: KubernetesManifest@1
+            displayName: Create Docker Registry Secret for akspromote
+            inputs:
+              action: 'createSecret'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(kubernetesCluster)
+              secretType: 'dockerRegistry'
+              secretName: 'my-acr-secret'
+              dockerRegistryEndpoint: 'fstefanovacrlearning'
+
+          - task: KubernetesManifest@1
+            displayName: promote canary
+            inputs:
+              action: 'promote'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(kubernetesCluster)
+              strategy: 'canary'
+              manifests: '$(Pipeline.Workspace)/manifests/*'
+              containers: '$(containerRegistry)/$(imageRepository):$(tag)'
+              imagePullSecrets: 'my-acr-secret'
+
+- stage: RejectCanary
+  displayName: Reject canary
+  dependsOn: PromoteRejectCanary
+  condition: failed()
+
+  jobs:
+  - deployment: RejectCanary
+    displayName: Reject Canary
+    pool: 
+      vmImage: ubuntu-latest
+    environment: 'akscanary'
+    strategy:
+      runOnce:
+        deploy:
+          steps:        
+          - task: KubernetesManifest@1
+            displayName: Create Docker Registry Secret for reject canary
+            inputs:
+              action: 'createSecret'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(kubernetesCluster)
+              secretType: 'dockerRegistry'
+              secretName: 'my-acr-secret'
+              dockerRegistryEndpoint: 'fstefanovacrlearning'    
+          - task: KubernetesManifest@1
+            displayName: Reject canary deployment
+            inputs:
+              action: 'reject'
+              connectionType: 'azureResourceManager'
+              azureSubscriptionConnection: 'fstefanov-sub-conn'
+              azureResourceGroup: $(resourceGroup)
+              kubernetesCluster: $(kubernetesCluster)
+              namespace: 'default'
+              strategy: 'canary'
+              manifests: '$(Pipeline.Workspace)/manifests/*'
