@@ -75,7 +75,7 @@ stages:
               manifests: |
                 $(Pipeline.Workspace)/manifests/deployment.yml
                 $(Pipeline.Workspace)/manifests/service.yml
-              containers: 'sampleapp=$(containerRegistry)/$(imageRepository):$(tag)'
+              containers: '$(containerRegistry)/$(imageRepository):$(tag)'
               imagePullSecrets: 'my-acr-secret'
               rolloutStatusTimeout:  '300'
           - task: KubernetesManifest@1
