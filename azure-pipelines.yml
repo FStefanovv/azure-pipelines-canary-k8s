@@ -80,7 +80,7 @@ stages:
                 $(Pipeline.Workspace)/manifests/service.yml
               containers: '$(containerRegistry)/$(imageRepository):$(tag)'
               imagePullSecrets: 'my-acr-secret'
-              rolloutStatusTimeout:  '300s'
+              rolloutStatusTimeout:  '300'
           - task: KubernetesManifest@1
             displayName: Deploy Forbio to Kubernetes cluster
             inputs:
