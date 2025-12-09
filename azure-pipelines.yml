@@ -33,9 +33,7 @@ stages:
 
     - publish: manifests
       artifact: manifests
-
-    - publish: misc
-      artifact: misc
+      
 
 - stage: DeployCanary
   displayName: Deploy canary
@@ -78,15 +76,6 @@ stages:
               containers: '$(containerRegistry)/$(imageRepository):$(tag)'
               imagePullSecrets: 'my-acr-secret'
               rolloutStatusTimeout:  '300'
-          - task: KubernetesManifest@1
-            displayName: Deploy Forbio to Kubernetes cluster
-            inputs:
-              action: 'deploy'
-              connectionType: 'azureResourceManager'
-              azureSubscriptionConnection: 'fstefanov-sub-conn'
-              azureResourceGroup: $(resourceGroup)
-              kubernetesCluster: $(kubernetesCluster)
-              manifests: '$(Pipeline.Workspace)/misc/*'
 
 
 - stage: PromoteRejectCanary
