@@ -61,6 +61,10 @@ stages:
               secretType: 'dockerRegistry'
               secretName: 'my-acr-secret'
               dockerRegistryEndpoint: 'fstefanovacrlearning'
+
+          - script: echo "Image to deploy $(containerRegistry)/$(imageRepository):$(tag)"
+            displayName: Show image
+
           - task: KubernetesManifest@1
             displayName: Deploy to Kubernetes cluster
             inputs:
